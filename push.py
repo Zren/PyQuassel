@@ -25,8 +25,8 @@ class PushBullet(pushbullet.PushBullet):
             raise PushError(r.text)
 
 class PushBulletNotification(PushBullet):
-    def __init__(self, apiKey):
-        super().__init__(apiKey, deviceName=None)
+    def __init__(self, apiKey, deviceName=None):
+        super().__init__(apiKey)
         self.activePush = None
         self.device = None
         if deviceName:

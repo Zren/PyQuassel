@@ -44,7 +44,7 @@ class QTcpSocket:
 
     def read(self, maxSize):
         buf = self.socket.recv(maxSize)
-        # print('QTcpSocket >>', buf)
+        print('QTcpSocket >>', buf)
         return buf
 
     def write(self, data):
@@ -95,11 +95,11 @@ class QDataStream:
     def readByte(self):
         buf = self.device.read(1)
         # print(buf)
-        # return buf
+        return buf
         # i = struct.unpack('>H', b'\x00' + buf)[0]
-        i = struct.unpack('b', buf)[0]
+        # i = struct.unpack('b', buf)[0]
         # i = int.from_bytes(buf, byteorder='little', signed=True)
-        return i
+        # return i
 
 
     def readInt16BE(self):
@@ -308,6 +308,8 @@ class QDataStream:
             val = self.readQBool()
         elif variantType == QDataStream.Type.STRING:
             val = self.readQString()
+        # elif variantType == QDataStream.Type.CHAR:
+        #     val = self.readByte().decode('ascii')
         elif variantType == QDataStream.Type.INT:
             val = self.readQInt()
         elif variantType == QDataStream.Type.UINT:

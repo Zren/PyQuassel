@@ -179,7 +179,7 @@ class QuasselConsole(QuasselClient):
 
             import re
             if re.match(r'(?:^|\b)(Zren|Shadeness)(?:\b|$)', message['content']):
-                pp(message)
+                print(message)
                 if self.pushNotification is None:
                     from push import PushBulletNotification
                     self.pushNotification = PushBulletNotification(self.config.pushbulletApiKey, deviceName=self.config.pushbulletDeviceName)
