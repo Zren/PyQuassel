@@ -44,7 +44,7 @@ class QTcpSocket:
 
     def read(self, maxSize):
         buf = self.socket.recv(maxSize)
-        print('QTcpSocket >>', buf)
+        # print('QTcpSocket >>', buf)
         return buf
 
     def write(self, data):

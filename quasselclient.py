@@ -177,27 +177,35 @@ class QuasselConsole(QuasselClient):
             # pp(message)
             # print('Highlighted:', message['flags'] & Message.Flag.Highlight)
 
-            import re
-            if re.match(r'(?:^|\b)(Zren|Shadeness)(?:\b|$)', message['content']):
-                print(message)
-                if self.pushNotification is None:
-                    from push import PushBulletNotification
-                    self.pushNotification = PushBulletNotification(self.config.pushbulletApiKey, deviceName=self.config.pushbulletDeviceName)
+            # PushBullet Notifications
+            try:
+                import re
+                # Doesn't match " Zren", "Zren ", or anything except "Zren"... wtf.
+                if re.match(r'(?:^|\b)(Zren|Shadeness)(?:\b|$)', message['content']):
+                    print(message)
+                    if self.pushNotification is None:
+                        from push import PushBulletNotification
+                        self.pushNotification = PushBulletNotification(self.config.pushbulletApiKey, deviceName=self.config.pushbulletDeviceName)
 
-                self.pushNotification.pushMessage(*[
+                    self.pushNotification.pushMessage(*[
+                        message['bufferInfo']['name'],
+                        message['sender'].split('!')[0],
+                        message['content'],
+                    ])
+            except:
+                pass
+            
+            try:
+                messageFormat = '{:<16}\t{:>16}: {}'
+                output = messageFormat.format(*[
                     message['bufferInfo']['name'],
                     message['sender'].split('!')[0],
                     message['content'],
                 ])
-            # return
-
-            # messageFormat = '{:<16}\t{:>16}: {}'
-            # output = messageFormat.format(*[
-            #     message['bufferInfo']['name'],
-            #     message['sender'].split('!')[0],
-            #     message['content'],
-            # ])
-            # print(output.encode('utf-8', errors='replace').decode('ascii', errors='replace'))
+                print(output.encode('utf-8', errors='replace').decode('ascii', errors='replace'))
+            except:
+                # Windows console sucks.
+                pass
 
 
 
@@ -223,8 +231,9 @@ if __name__ == '__main__':
     quasselClient.readClientLogin()
 
     quasselClient.readSessionState()
-    # quasselClient.sendNetworkInits()
+    # quasselClient.sendNetworkInits() # Slooooow.
 
+    # findBufferId(..., networkName="") requires calling quasselClient.sendNetworkInits() first.
     def findBufferId(bufferName, networkId=None, networkName=None):
         for buffer in quasselClient.buffers.values():
             if buffer['name'] == bufferName:
@@ -240,9 +249,9 @@ if __name__ == '__main__':
         return None
 
 
-
-    bufferId = findBufferId('#zren', networkId=1)
-    quasselClient.sendInput(bufferId, '\x032Test message please ignore')
+    # Example of sending input.
+    # bufferId = findBufferId('#zren', networkId=1)
+    # quasselClient.sendInput(bufferId, '\x032Test message please ignore')
 
 
     # import time
