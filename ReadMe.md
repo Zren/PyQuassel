@@ -6,7 +6,16 @@ Based on:
  * https://github.com/magne4000/node-libquassel/
  * https://github.com/sandsmark/QuasselDroid/
 
-### config.py
+## Setup
+
+### Install
+
+```bash
+git clone https://github.com/Zren/PyQuassel.git
+cd PyQuassel
+```
+
+### Create `config.py`
 
 ```python
 host = 'localhost'
@@ -14,4 +23,10 @@ port = 4242
 
 username = 'AdminUser'
 password = 'PASSWORD'
+```
+
+## Update
+
+```bash
+git pull origin master
 ```
