@@ -1,9 +1,39 @@
+from enum import IntEnum
 import socket
 from qt import *
 
 import json
 def pp(data):
     print(json.dumps(data, sort_keys=True, indent=4))
+
+class Message:
+    class Type(IntEnum):
+        Plain     = 0x00001
+        Notice    = 0x00002
+        Action    = 0x00004
+        Nick      = 0x00008
+        Mode      = 0x00010
+        Join      = 0x00020
+        Part      = 0x00040
+        Quit      = 0x00080
+        Kick      = 0x00100
+        Kill      = 0x00200
+        Server    = 0x00400
+        Info      = 0x00800
+        Error     = 0x01000
+        DayChange = 0x02000
+        Topic     = 0x04000
+        NetsplitJoin = 0x08000
+        NetsplitQuit = 0x10000
+        Invite = 0x20000
+
+    class Flag(IntEnum):
+        # None = 0x00
+        Self = 0x01
+        Highlight = 0x02
+        Redirected = 0x04
+        ServerMsg = 0x08
+        Backlog = 0x80
 
 
 class Protocol:
@@ -20,7 +50,8 @@ class Protocol:
 
 
 class QuasselClient():
-    def __init__(self):
+    def __init__(self, config):
+        self.config = config
         self.socket = QTcpSocket()
         self.stream = QDataStream(self.socket)
     
@@ -87,7 +118,7 @@ class QuasselClient():
 
     def sendNetworkInits(self):
         for networkId in self.networks.keys():
-            print(networkId)
+            # print(networkId)
             l = [
                 3, # RequestType.InitRequest
                 'Network',
@@ -112,10 +143,11 @@ class QuasselClient():
             className = data[1]
             objectName = data[2]
             if className == b'Network':
+                networkId = int(objectName)
                 initMap = data[3]
                 # pp(initMap)
                 self.networks[networkId] = initMap
-                print(initMap['networkName'])
+                # print(initMap['networkName'])
                 return
         
         # print(data)
@@ -133,33 +165,55 @@ class QuasselClient():
         self.stream.write(l)
 
     def onMessageRecieved(self, message):
-        if message['type'] == 1 or message['type'] == 4:
-            messageFormat = '{}\t<{}>\t{}'
-            output = messageFormat.format(*[
-                message['bufferInfo']['name'],
-                message['sender'].split('!')[0],
-                message['content'],
-            ])
-            print(output)
+        pass
 
+class QuasselConsole(QuasselClient):
+    def __init__(self, config):
+        super().__init__(config)
+        self.pushNotification = None
+
+    def onMessageRecieved(self, message):
+        if message['type'] == Message.Type.Plain or message['type'] == Message.Type.Action:
+            # pp(message)
+            # print('Highlighted:', message['flags'] & Message.Flag.Highlight)
+
+            import re
+            if re.match(r'(?:^|\b)(Zren|Shadeness)(?:\b|$)', message['content']):
+                pp(message)
+                if self.pushNotification is None:
+                    from push import PushBulletNotification
+                    self.pushNotification = PushBulletNotification(self.config.pushbulletApiKey, deviceName=self.config.pushbulletDeviceName)
+
+                self.pushNotification.pushMessage(*[
+                    message['bufferInfo']['name'],
+                    message['sender'].split('!')[0],
+                    message['content'],
+                ])
+            # return
+
+            # messageFormat = '{:<16}\t{:>16}: {}'
+            # output = messageFormat.format(*[
+            #     message['bufferInfo']['name'],
+            #     message['sender'].split('!')[0],
+            #     message['content'],
+            # ])
+            # print(output.encode('utf-8', errors='replace').decode('ascii', errors='replace'))
 
 
 
 if __name__ == '__main__':
-    host = 'localhost'
-    port = 4242
-    username = 'AdminUser'
-    password = ''
+    import sys, os
+    if not os.path.exists('config.py'):
+        print('Please create a config.py as mentioned in the ReadMe.')
+        sys.exit(1)
 
-    import os
-    if os.path.exists('config.py'):
-        import config
-        host = config.host
-        port = config.port
-        username = config.username
-        password = config.password
+    import config
+    host = config.host
+    port = config.port
+    username = config.username
+    password = config.password
     
-    quasselClient = QuasselClient()
+    quasselClient = QuasselConsole(config)
     quasselClient.connectToHost(host, port)
     quasselClient.onSocketConnect()
 
@@ -187,8 +241,8 @@ if __name__ == '__main__':
 
 
 
-    # bufferId = findBufferId('#zren', networkId=1)
-    # quasselClient.sendInput(bufferId, '\x032Test message please ignore')
+    bufferId = findBufferId('#zren', networkId=1)
+    quasselClient.sendInput(bufferId, '\x032Test message please ignore')
 
 
     # import time

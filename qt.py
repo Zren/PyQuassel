@@ -92,6 +92,16 @@ class QDataStream:
     def __lshift__(self, obj):
         self.writeRawData(obj)
 
+    def readByte(self):
+        buf = self.device.read(1)
+        # print(buf)
+        # return buf
+        # i = struct.unpack('>H', b'\x00' + buf)[0]
+        i = struct.unpack('b', buf)[0]
+        # i = int.from_bytes(buf, byteorder='little', signed=True)
+        return i
+
+
     def readInt16BE(self):
         buf = self.device.read(2)
         i = struct.unpack('>h', buf)[0]
@@ -352,7 +362,7 @@ class QDataStream:
                     'id': self.readQInt(),
                     'timestamp': self.readQUInt(),
                     'type': self.readQUInt(),
-                    'flags': self.readQBool(),
+                    'flags': self.readByte(),
                     'bufferInfo': {
                         'id': self.readQInt(),
                         'network': self.readQInt(),
