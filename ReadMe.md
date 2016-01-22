@@ -25,6 +25,12 @@ username = 'AdminUser'
 password = 'PASSWORD'
 ```
 
+## Run
+
+```bash
+python quasselclient.py
+```
+
 ## Update
 
 ```bash
