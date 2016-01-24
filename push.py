@@ -1,28 +1,30 @@
-import pushbullet
-import config
 
-class PushBullet(pushbullet.PushBullet):
-    def refresh(self):
-        pass
+# import pushbullet
 
-    def get_device(self, nickname):
-        req_device = next((device for device in self.devices if device.nickname == nickname), None)
+# class PushBullet(pushbullet.PushBullet):
+#     def refresh(self):
+#         pass
+
+#     def get_device(self, nickname):
+#         req_device = next((device for device in self.devices if device.nickname == nickname), None)
         
-        if req_device is None:
-            raise InvalidKeyError()
+#         if req_device is None:
+#             raise InvalidKeyError()
         
-        return req_device
+#         return req_device
 
-    def get_push(self, iden):
-        import json
-        r = self._session.get("{}/{}".format(self.PUSH_URL, iden))
+#     def get_push(self, iden):
+#         import json
+#         r = self._session.get("{}/{}".format(self.PUSH_URL, iden))
 
-        import requests
-        if r.status_code == requests.codes.ok:
-            return r.json()
-        else:
-            from pushbullet import PushError
-            raise PushError(r.text)
+#         import requests
+#         if r.status_code == requests.codes.ok:
+#             return r.json()
+#         else:
+#             from pushbullet import PushError
+#             raise PushError(r.text)
+
+from push2 import PushBullet
 
 class PushBulletNotification(PushBullet):
     def __init__(self, apiKey, deviceName=None):
@@ -61,8 +63,13 @@ class PushBulletNotification(PushBullet):
         self.activePush = push
 
 if __name__ == '__main__':
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+
+    import config
     # p = PushBullet(config.pushbulletApiKey)
-    p = QuasselPushBullet(config.pushbulletApiKey, deviceName=config.pushbulletDeviceName)
+    p = PushBulletNotification(config.pushbulletApiKey, deviceName=config.pushbulletDeviceName)
+    # p.device = 'ujAjoxHjkmisjAcc26Tgia'
 
     
     p.pushMessage('#zren', 'Zren', 'Testing 123')
