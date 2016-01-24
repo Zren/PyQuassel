@@ -35,6 +35,8 @@ class QTcpSocket:
     def __init__(self):
         self.socket = socket.socket()
         self.socket.settimeout(2)
+        self.logReadBuffer = False
+        self.readBufferLog = []
     
     def connectToHost(self, hostName, port):
         self.socket.connect((hostName, port))
@@ -45,6 +47,8 @@ class QTcpSocket:
     def read(self, maxSize):
         buf = self.socket.recv(maxSize)
         # print('QTcpSocket >>', buf)
+        if self.logReadBuffer:
+            self.readBufferLog.append(buf)
         return buf
 
     def write(self, data):
@@ -256,11 +260,6 @@ class QDataStream:
                     v = QVariant(v)
                 self.writeQVariant(v)
 
-    class Reader:
-        def __init__(self, buf):
-            self.pos = 0
-
-
     def write(self, obj):
         writer = QDataStream.Writer(obj)
 
@@ -303,9 +302,9 @@ class QDataStream:
             print(m)
             raise Exception('QDataStream.Type', variantType)
 
-        # print('QVariant.type', variantType)
+        # print('  QVariant.type', variantType)
         isNull = self.readBool()
-        # print('QVariant.isNull', isNull)
+        # print('  QVariant.isNull', isNull)
 
         if variantType == QDataStream.Type.MAP:
             val = self.readQMap()
@@ -386,7 +385,7 @@ class QDataStream:
         else:
             raise Exception('QVariant.type', variantType)
 
-        # print('QVariant.val', val)
+        # print('QVariant.val', variantType, val)
         return val
 
 

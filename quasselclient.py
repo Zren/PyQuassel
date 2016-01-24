@@ -52,10 +52,18 @@ class Protocol:
 class QuasselClient():
     def __init__(self, config):
         self.config = config
+        self.createSocket()
+        self.running = False
+        
+    def createSocket(self):
         self.socket = QTcpSocket()
         self.stream = QDataStream(self.socket)
     
-    def connectToHost(self, hostName, port):
+    def connectToHost(self, hostName=None, port=None):
+        if hostName is None:
+            hostName = config.host
+        if port is None:
+            port = config.port
         self.socket.connectToHost(hostName, port)
 
     def disconnectFromHost(self):
@@ -90,7 +98,11 @@ class QuasselClient():
         data = self.stream.read()
         return data
 
-    def sendClientLogin(self, username, password):
+    def sendClientLogin(self, username=None, password=None):
+        if username is None:
+            username = self.config.username
+        if password is None:
+            password = self.config.password
         m = {}
         m['MsgType'] = 'ClientLogin'
         m['User'] = username
@@ -164,13 +176,88 @@ class QuasselClient():
         pp(l)
         self.stream.write(l)
 
+    # findBufferId(..., networkName="") requires calling quasselClient.sendNetworkInits() first.
+    def findBufferId(self, bufferName, networkId=None, networkName=None):
+        for buffer in self.buffers.values():
+            if buffer['name'] == bufferName:
+                if networkId is not None:
+                    if buffer['network'] == networkId:
+                        return buffer['id']
+                elif networkName is not None:
+                    network = self.networks[buffer['network']]
+                    if network['networkName'] == networkName:
+                        return buffer['id']
+                else:
+                    return buffer['id']
+        return None
+
+    def createSession(self):
+        self.connectToHost()
+        self.onSocketConnect()
+
+        self.sendClientInit()
+        self.readClientInit()
+        self.sendClientLogin()
+        self.readClientLogin()
+
+        self.readSessionState()
+
+    def reconnect(self):
+        self.createSocket()
+        self.createSession()
+        self.running = True
+
+    def run(self):
+        self.createSession()
+        self.onSessionStarted()
+        self.running = True
+        while self.running:
+            try:
+                self.readPackedFunctionLoop()
+            except IOError:
+                self.running = False
+                self.onSocketClosed()
+
+
+    def readPackedFunctionLoop(self):
+        self.socket.socket.settimeout(15)
+        self.socket.logReadBuffer = True
+        while self.running:
+            try:
+                self.readPackedFunc()
+                print('TCP >>')
+                for buf in self.socket.readBufferLog:
+                    print('\t', buf)
+                del self.socket.readBufferLog[:]
+            except socket.timeout:
+                pass
+            except Exception as e:
+                print('TCP >>')
+                for buf in self.socket.readBufferLog:
+                    print('\t', buf)
+                raise e
+
+    def onSessionStarted(self):
+        self.sendNetworkInits() # Slooooow.
+
     def onMessageRecieved(self, message):
+        pass
+
+    def onSocketClosed(self):
         pass
 
 class QuasselConsole(QuasselClient):
     def __init__(self, config):
         super().__init__(config)
         self.pushNotification = None
+
+    def onSessionStarted(self):
+        # self.sendNetworkInits() # Slooooow.
+
+        # Example of sending input.
+        # bufferId = quasselClient.findBufferId('#zren', networkId=1)
+        # quasselClient.sendInput(bufferId, '\x032Test message please ignore')
+        pass
 
     def onMessageRecieved(self, message):
         if message['type'] == Message.Type.Plain or message['type'] == Message.Type.Action:
@@ -202,10 +289,15 @@ class QuasselConsole(QuasselClient):
                     message['sender'].split('!')[0],
                     message['content'],
                 ])
-                print(output.encode('utf-8', errors='replace').decode('ascii', errors='replace'))
+                # print(output.encode('utf-8', errors='replace').decode('ascii', errors='replace'))
+                print(output)
             except:
                 # Windows console sucks.
                 pass
+
+    def onSocketClosed(self):
+        print('\n\nSocket Closed\n\nReconnecting\n')
+        self.reconnect()
 
 
 
@@ -222,48 +314,7 @@ if __name__ == '__main__':
     password = config.password
     
     quasselClient = QuasselConsole(config)
-    quasselClient.connectToHost(host, port)
-    quasselClient.onSocketConnect()
-
-    quasselClient.sendClientInit()
-    quasselClient.readClientInit()
-    quasselClient.sendClientLogin(username, password)
-    quasselClient.readClientLogin()
-
-    quasselClient.readSessionState()
-    # quasselClient.sendNetworkInits() # Slooooow.
-
-    # findBufferId(..., networkName="") requires calling quasselClient.sendNetworkInits() first.
-    def findBufferId(bufferName, networkId=None, networkName=None):
-        for buffer in quasselClient.buffers.values():
-            if buffer['name'] == bufferName:
-                if networkId is not None:
-                    if buffer['network'] == networkId:
-                        return buffer['id']
-                elif networkName is not None:
-                    network = self.networks[buffer['network']]
-                    if network['networkName'] == networkName:
-                        return buffer['id']
-                else:
-                    return buffer['id']
-        return None
-
-
-    # Example of sending input.
-    # bufferId = findBufferId('#zren', networkId=1)
-    # quasselClient.sendInput(bufferId, '\x032Test message please ignore')
-
-
-    # import time
-    # time.sleep(5)
-
-    quasselClient.socket.socket.settimeout(15)
-    while True:
-        try:
-            quasselClient.readPackedFunc()
-        except socket.timeout:
-            pass
-        # time.sleep(0.1)
+    quasselClient.run()
 
     quasselClient.disconnectFromHost()
 
