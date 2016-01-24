@@ -279,7 +279,12 @@ class QDataStream:
         # buf = 
 
     def read(self):
-        size = self.readUInt32BE()
+        # size = self.readUInt32BE()
+        buf = self.device.read(4)
+        if len(buf) == 0:
+            raise IOError('Device Closed')
+        size = struct.unpack('>I', buf)[0]
+
         # print('buffer size:', size)
         obj = self.readQVariant()
 
