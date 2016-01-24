@@ -225,9 +225,9 @@ class QuasselClient():
         while self.running:
             try:
                 self.readPackedFunc()
-                print('TCP >>')
-                for buf in self.socket.readBufferLog:
-                    print('\t', buf)
+                # print('TCP >>')
+                # for buf in self.socket.readBufferLog:
+                #     print('\t', buf)
                 del self.socket.readBufferLog[:]
             except socket.timeout:
                 pass
