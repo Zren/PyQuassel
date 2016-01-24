@@ -268,7 +268,9 @@ class QuasselConsole(QuasselClient):
             try:
                 import re
                 # Doesn't match " Zren", "Zren ", or anything except "Zren"... wtf.
-                if re.match(r'(?:^|\b)(Zren|Shadeness)(?:\b|$)', message['content']):
+                keywords = self.config.pushbulletKeywords
+                pattern = r'\b(' + '|'.join(keywords) + r')\b'
+                if re.search(pattern, message['content'], flags=re.IGNORECASE):
                     print(message)
                     if self.pushNotification is None:
                         from push import PushBulletNotification
@@ -279,8 +281,8 @@ class QuasselConsole(QuasselClient):
                         message['sender'].split('!')[0],
                         message['content'],
                     ])
-            except:
-                pass
+            except Exception as e:
+                print(e)
             
             try:
                 messageFormat = '{:<16}\t{:>16}: {}'
@@ -291,9 +293,10 @@ class QuasselConsole(QuasselClient):
                 ])
                 # print(output.encode('utf-8', errors='replace').decode('ascii', errors='replace'))
                 print(output)
-            except:
+            except Exception as e:
                 # Windows console sucks.
-                pass
+                # pass
+                print(e)
 
     def onSocketClosed(self):
         print('\n\nSocket Closed\n\nReconnecting\n')
