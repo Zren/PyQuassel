@@ -313,8 +313,9 @@ class QDataStream:
             val = self.readQBool()
         elif variantType == QDataStream.Type.STRING:
             val = self.readQString()
-        # elif variantType == QDataStream.Type.CHAR:
-        #     val = self.readByte().decode('ascii')
+        elif variantType == QDataStream.Type.CHAR:
+            val = self.device.read(2)
+            val = val.decode('utf_16_be')
         elif variantType == QDataStream.Type.INT:
             val = self.readQInt()
         elif variantType == QDataStream.Type.UINT:
