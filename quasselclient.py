@@ -36,6 +36,15 @@ class Message:
         Backlog = 0x80
 
 
+class RequestType(IntEnum):
+    Invalid = 0
+    Sync = 1
+    RpcCall = 2
+    InitRequest = 3
+    InitData = 4
+    HeartBeat = 5
+    HeartBeatReply = 6
+
 class Protocol:
     magic = 0x42b33f00
 
@@ -132,7 +141,7 @@ class QuasselClient():
         for networkId in self.networks.keys():
             # print(networkId)
             l = [
-                3, # RequestType.InitRequest
+                RequestType.InitRequest,
                 'Network',
                 str(networkId),
             ]
@@ -143,7 +152,7 @@ class QuasselClient():
     def readPackedFunc(self):
         data = self.stream.read()
         requestType = data[0]
-        if requestType == 2: # RequestType.RpcCall
+        if requestType == RequestType.RpcCall:
             functionName = data[1]
             if functionName == b'2displayMsg(Message)':
                 message = data[2]
@@ -151,7 +160,7 @@ class QuasselClient():
                 self.onMessageRecieved(message)
                 return
 
-        elif requestType == 4: # RequestType.InitData
+        elif requestType == RequestType.InitData:
             className = data[1]
             objectName = data[2]
             if className == b'Network':
@@ -168,7 +177,7 @@ class QuasselClient():
         print('sendInput', bufferId, message)
         bufferInfo = self.buffers[bufferId]
         l = [
-            2, # RequestType.RpcCall
+            RequestType.RpcCall,
             '2sendInput(BufferInfo,QString)',
             QUserType('BufferInfo', bufferInfo),
             message,
