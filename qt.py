@@ -445,7 +445,7 @@ class QDataStream:
     def readQByteArray(self):
         size = self.readUInt32BE()
         if size == 0xFFFFFFFF:
-            return ''
+            return b''
         buf = self.device.read(size)
         s = buf
         return s
