@@ -1,6 +1,8 @@
 from enum import IntEnum
 import socket
 from qt import *
+import time
+import datetime
 
 import json
 def pp(data):
@@ -170,6 +172,11 @@ class QuasselClient():
                 self.networks[networkId] = initMap
                 # print(initMap['networkName'])
                 return
+        elif requestType == RequestType.HeartBeat:
+            self.sendHeartBeatReply()
+        elif requestType == RequestType.HeartBeatReply:
+            print('HeartBeatReply', data)
+
         
         # print(data)
 
@@ -183,6 +190,24 @@ class QuasselClient():
             message,
         ]
         pp(l)
+        self.stream.write(l)
+
+    def sendHeartBeat(self):
+        t = datetime.datetime.now().time()
+        print('sendHeartBeat', t)
+        l = [
+            RequestType.HeartBeat,
+            t,
+        ]
+        self.stream.write(l)
+
+    def sendHeartBeatReply(self):
+        t = datetime.datetime.now().time()
+        print('sendHeartBeatReply', t)
+        l = [
+            RequestType.HeartBeatReply,
+            t,
+        ]
         self.stream.write(l)
 
     # findBufferId(..., networkName="") requires calling quasselClient.sendNetworkInits() first.
@@ -220,6 +245,7 @@ class QuasselClient():
         self.createSession()
         self.onSessionStarted()
         self.running = True
+        self.lastHeartBeatSentAt = None
         while self.running:
             try:
                 self.readPackedFunctionLoop()
@@ -238,6 +264,11 @@ class QuasselClient():
                 # for buf in self.socket.readBufferLog:
                 #     print('\t', buf)
                 del self.socket.readBufferLog[:]
+
+                t = int(time.time() * 1000)
+                if self.lastHeartBeatSentAt is None or t - self.lastHeartBeatSentAt > 60 * 1000:
+                    self.sendHeartBeat()
+                    self.lastHeartBeatSentAt = t
             except socket.timeout:
                 pass
             except Exception as e:

@@ -1,6 +1,7 @@
 from enum import Enum, IntEnum
 import socket
 import struct
+from datetime import datetime, time
 
 import json
 def pp(data):
@@ -19,6 +20,8 @@ class QVariant:
             self.type = QDataStream.Type.STRING
         elif isinstance(obj, list):
             self.type = QDataStream.Type.LIST
+        elif isinstance(obj, time):
+            self.type = QDataStream.Type.TIME
 
 class QUserType(QVariant, dict):
     def __init__(self, name, obj):
@@ -189,6 +192,8 @@ class QDataStream:
                 self.writeQString(obj)
             elif isinstance(obj, list):
                 self.writeQList(obj)
+            elif isinstance(obj, time):
+                self.writeQTime(obj)
             # Fuck
             else:
                 raise Exception("Type not found")
@@ -205,6 +210,13 @@ class QDataStream:
 
         def writeQBool(self, qbool):
             self.writeBool(qbool)
+
+        def writeQTime(self, qtime):
+            t = qtime.hour * 3600000
+            t += qtime.minute * 60000
+            t += qtime.second * 1000
+            t += int(qtime.microsecond/1000)
+            self.writeUInt32BE(t)
 
         def writeQString(self, qstring):
             if qstring is None:
