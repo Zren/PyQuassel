@@ -27,7 +27,7 @@ password = 'PASSWORD'
 ## Run
 
 ```bash
-python quasselclient.py
+python quasselbot.py
 ```
 
 ## Update
@@ -35,3 +35,45 @@ python quasselclient.py
 ```bash
 git pull origin master
 ```
+
+# Plugins
+
+Enable a plugin by adding it's name in `config.py`.
+
+```python
+enabledPlugins = [
+    'chatlog',
+    'pushbullet',
+]
+```
+
+## chatlog
+
+Prints chat messages to the console.
+
+## pushbullet
+
+### `config.py`
+
+```python
+"""
+For push notifications, you'll need an Access Token which
+can gotten from your account settings.
+https://www.pushbullet.com/#settings/account
+"""
+pushbulletAccessToken = 'asd78f69sd876f765dsf78s5da7f5as7df8a58s7dfADS'
+"""
+To push to all decives, push set as None.
+To push to a specific device, enter the device name.
+https://www.pushbullet.com/#settings/devices 
+"""
+pushbulletDeviceName = None
+# pushbulletDeviceName = 'Motorola XT1034'
+
+pushIfKeyword = [ # Case Insensitive
+    'Zren',
+    'Shadeness',
+    'Pushbullet',
+]
+```
+

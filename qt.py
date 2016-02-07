@@ -1,7 +1,7 @@
 from enum import Enum, IntEnum
 import socket
 import struct
-from datetime import datetime, time
+import datetime
 
 import json
 def pp(data):
@@ -20,7 +20,7 @@ class QVariant:
             self.type = QDataStream.Type.STRING
         elif isinstance(obj, list):
             self.type = QDataStream.Type.LIST
-        elif isinstance(obj, time):
+        elif isinstance(obj, datetime.time):
             self.type = QDataStream.Type.TIME
 
 class QUserType(QVariant, dict):
@@ -192,7 +192,7 @@ class QDataStream:
                 self.writeQString(obj)
             elif isinstance(obj, list):
                 self.writeQList(obj)
-            elif isinstance(obj, time):
+            elif isinstance(obj, datetime.time):
                 self.writeQTime(obj)
             # Fuck
             else:
@@ -346,15 +346,14 @@ class QDataStream:
             julianDay = self.readQUInt()
             secondsSinceMidnight = self.readQUInt()
             isUTC = self.readBool()
-            # from datetime import datetime
-            # val = datetime.now()
             val = 1
-
         elif variantType == QDataStream.Type.USERTYPE:
             name = self.readQByteArray()
             name = name.decode('utf-8')
             name = name.rstrip('\0')
             # print('QUserType.name', name)
+
+            # TODO: Make dynamic
             if name == 'NetworkId':
                 val = self.readQInt()
             elif name == 'IdentityId':

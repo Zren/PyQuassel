@@ -1,6 +1,4 @@
-from enum import IntEnum
 import socket
-from qt import *
 import time
 import datetime
 
@@ -8,63 +6,15 @@ import json
 def pp(data):
     print(json.dumps(data, sort_keys=True, indent=4))
 
-class Message:
-    class Type(IntEnum):
-        Plain     = 0x00001
-        Notice    = 0x00002
-        Action    = 0x00004
-        Nick      = 0x00008
-        Mode      = 0x00010
-        Join      = 0x00020
-        Part      = 0x00040
-        Quit      = 0x00080
-        Kick      = 0x00100
-        Kill      = 0x00200
-        Server    = 0x00400
-        Info      = 0x00800
-        Error     = 0x01000
-        DayChange = 0x02000
-        Topic     = 0x04000
-        NetsplitJoin = 0x08000
-        NetsplitQuit = 0x10000
-        Invite = 0x20000
+from qt import *
+from quassel import *
 
-    class Flag(IntEnum):
-        # None = 0x00
-        Self = 0x01
-        Highlight = 0x02
-        Redirected = 0x04
-        ServerMsg = 0x08
-        Backlog = 0x80
-
-
-class RequestType(IntEnum):
-    Invalid = 0
-    Sync = 1
-    RpcCall = 2
-    InitRequest = 3
-    InitData = 4
-    HeartBeat = 5
-    HeartBeatReply = 6
-
-class Protocol:
-    magic = 0x42b33f00
-
-    class Type:
-        InternalProtocol = 0x00
-        LegacyProtocol = 0x01
-        DataStreamProtocol = 0x02
-
-    class Feature:
-        Encryption = 0x01
-        Compression = 0x02
-
-
-class QuasselClient():
-    def __init__(self, config):
+class QuasselClient:
+    def __init__(self, config=None):
         self.config = config
-        self.createSocket()
         self.running = False
+        self.socket = None
+        self.stream = None
         
     def createSocket(self):
         self.socket = QTcpSocket()
@@ -72,9 +22,12 @@ class QuasselClient():
     
     def connectToHost(self, hostName=None, port=None):
         if hostName is None:
-            hostName = config.host
+            hostName = self.config.host
         if port is None:
-            port = config.port
+            port = self.config.port
+            
+        if self.socket is None:
+            self.createSocket()
         self.socket.connectToHost(hostName, port)
 
     def disconnectFromHost(self):
@@ -237,7 +190,6 @@ class QuasselClient():
         self.readSessionState()
 
     def reconnect(self):
-        self.createSocket()
         self.createSession()
         self.running = True
 
@@ -286,78 +238,16 @@ class QuasselClient():
     def onSocketClosed(self):
         pass
 
-class QuasselConsole(QuasselClient):
-    def __init__(self, config):
-        super().__init__(config)
-        self.pushNotification = None
-
-    def onSessionStarted(self):
-        # self.sendNetworkInits() # Slooooow.
-
-        # Example of sending input.
-        # bufferId = quasselClient.findBufferId('#zren', networkId=1)
-        # quasselClient.sendInput(bufferId, '\x032Test message please ignore')
-        pass
-
-    def onMessageRecieved(self, message):
-        if message['type'] == Message.Type.Plain or message['type'] == Message.Type.Action:
-            # pp(message)
-            # print('Highlighted:', message['flags'] & Message.Flag.Highlight)
-
-            # PushBullet Notifications
-            try:
-                import re
-                # Doesn't match " Zren", "Zren ", or anything except "Zren"... wtf.
-                keywords = self.config.pushbulletKeywords
-                pattern = r'\b(' + '|'.join(keywords) + r')\b'
-                if re.search(pattern, message['content'], flags=re.IGNORECASE):
-                    print(message)
-                    if self.pushNotification is None:
-                        from push import PushBulletNotification
-                        self.pushNotification = PushBulletNotification(self.config.pushbulletApiKey, deviceName=self.config.pushbulletDeviceName)
-
-                    self.pushNotification.pushMessage(*[
-                        message['bufferInfo']['name'],
-                        message['sender'].split('!')[0],
-                        message['content'],
-                    ])
-            except Exception as e:
-                print(e)
-            
-            try:
-                messageFormat = '{:<16}\t{:>16}: {}'
-                output = messageFormat.format(*[
-                    message['bufferInfo']['name'],
-                    message['sender'].split('!')[0],
-                    message['content'],
-                ])
-                # print(output.encode('utf-8', errors='replace').decode('ascii', errors='replace'))
-                print(output)
-            except Exception as e:
-                # Windows console sucks.
-                # pass
-                print(e)
-
-    def onSocketClosed(self):
-        print('\n\nSocket Closed\n\nReconnecting\n')
-        self.reconnect()
-
-
-
 if __name__ == '__main__':
+    raise Exception("You ran the wrong file.")
+
     import sys, os
     if not os.path.exists('config.py'):
         print('Please create a config.py as mentioned in the ReadMe.')
         sys.exit(1)
 
     import config
-    host = config.host
-    port = config.port
-    username = config.username
-    password = config.password
-    
-    quasselClient = QuasselConsole(config)
+    quasselClient = QuasselClient(config)
     quasselClient.run()
-
+    
     quasselClient.disconnectFromHost()
-
