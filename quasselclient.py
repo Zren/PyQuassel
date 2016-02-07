@@ -9,6 +9,42 @@ def pp(data):
 from qt import *
 from quassel import *
 
+class QuasselQDataStream(QDataStream):
+    def readUserType(self, name):
+        if name == 'NetworkId':
+            return self.readQInt()
+        elif name == 'IdentityId':
+            return self.readQInt()
+        elif name == 'BufferId':
+            return self.readQInt()
+        elif name == 'MsgId':
+            return self.readQInt()
+        elif name == 'Identity':
+            return self.readQMap()
+        elif name == 'Network::Server':
+            return self.readQMap()
+            # print(val)
+        elif name == 'BufferInfo':
+            val = {}
+            val['id'] = self.readQInt()
+            val['network'] = self.readQInt()
+            val['type'] = BufferInfo.Type(self.readQShort())
+            val['group'] = self.readQInt()
+            val['name'] = self.readQByteArray().decode('utf-8')
+            return val
+        elif name == 'Message':
+            val = {}
+            val['id'] = self.readQInt()
+            val['timestamp'] = self.readQUInt()
+            val['type'] = Message.Type(self.readQUInt())
+            val['flags'] = Message.Flag(self.readUInt8())
+            val['bufferInfo'] = self.readUserType('BufferInfo')
+            val['sender'] = self.readQByteArray().decode('utf-8')
+            val['content'] = self.readQByteArray().decode('utf-8')
+            return val
+        else:
+            return None
+
 class QuasselClient:
     def __init__(self, config=None):
         self.config = config
@@ -18,7 +54,7 @@ class QuasselClient:
         
     def createSocket(self):
         self.socket = QTcpSocket()
-        self.stream = QDataStream(self.socket)
+        self.stream = QuasselQDataStream(self.socket)
     
     def connectToHost(self, hostName=None, port=None):
         if hostName is None:

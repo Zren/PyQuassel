@@ -1,6 +1,7 @@
 import glob
 import os.path
 from importlib.machinery import SourceFileLoader
+import traceback
 from quassel import *
 from quasselclient import QuasselClient
 
@@ -34,7 +35,7 @@ class QuasselBot(QuasselClient):
             print('Plugin "{}" loaded.'.format(pluginFilepath))
         except Exception as e:
             print('Error loading plugin "{}".'.format(pluginFilepath))
-            print(e)
+            traceback.print_exc()
 
     def pluginCall(self, fnName, *args):
         for plugin in self.plugins:
@@ -44,7 +45,7 @@ class QuasselBot(QuasselClient):
                     fn(self, *args)
             except Exception as e:
                 print('Error while calling {}.{}'.format(plugin.__name__, fnName))
-                print(e)
+                traceback.print_exc()
 
     def onSessionStarted(self):
         # self.sendNetworkInits() # Slooooow.

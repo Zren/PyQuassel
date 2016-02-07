@@ -108,6 +108,10 @@ class QDataStream:
         # i = int.from_bytes(buf, byteorder='little', signed=True)
         # return i
 
+    def readUInt8(self):
+        buf = self.device.read(1)
+        i = struct.unpack('B', buf)[0]
+        return i
 
     def readInt16BE(self):
         buf = self.device.read(2)
@@ -353,45 +357,9 @@ class QDataStream:
             name = name.rstrip('\0')
             # print('QUserType.name', name)
 
-            # TODO: Make dynamic
-            if name == 'NetworkId':
-                val = self.readQInt()
-            elif name == 'IdentityId':
-                val = self.readQInt()
-            elif name == 'BufferId':
-                val = self.readQInt()
-            elif name == 'MsgId':
-                val = self.readQInt()
-            elif name == 'Identity':
-                val = self.readQMap()
-            elif name == 'Network::Server':
-                val = self.readQMap()
-                # print(val)
-            elif name == 'BufferInfo':
-                val = {
-                    'id': self.readQInt(),
-                    'network': self.readQInt(),
-                    'type': self.readQShort(),
-                    'group': self.readQInt(),
-                    'name': self.readQByteArray().decode('utf-8'),
-                }
-            elif name == 'Message':
-                val = {
-                    'id': self.readQInt(),
-                    'timestamp': self.readQUInt(),
-                    'type': self.readQUInt(),
-                    'flags': self.readByte(),
-                    'bufferInfo': {
-                        'id': self.readQInt(),
-                        'network': self.readQInt(),
-                        'type': self.readQShort(),
-                        'group': self.readQInt(),
-                        'name': self.readQByteArray().decode('utf-8'),
-                    },
-                    'sender': self.readQByteArray().decode('utf-8'),
-                    'content': self.readQByteArray().decode('utf-8'),
-                }
-            else:
+            val = self.readUserType(name)
+            
+            if val is None:
                 raise Exception("QUserType.name", name)
         else:
             raise Exception('QVariant.type', variantType)
@@ -399,6 +367,8 @@ class QDataStream:
         # print('QVariant.val', variantType, val)
         return val
 
+    def readUserType(self, name):
+        return None
 
     def readQMap(self):
         size = self.readUInt32BE()
