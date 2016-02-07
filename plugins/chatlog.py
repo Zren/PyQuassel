@@ -1,4 +1,5 @@
 from quassel import *
+import sys
 
 def onMessageRecieved(bot, message):
     if message['type'] == Message.Type.Plain or message['type'] == Message.Type.Action:
@@ -8,4 +9,6 @@ def onMessageRecieved(bot, message):
             message['sender'].split('!')[0],
             message['content'],
         ])
+        # Strip stuff the console hates.
+        output = output.encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding)
         print(output)
