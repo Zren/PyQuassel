@@ -164,7 +164,8 @@ class QuasselClient:
         elif requestType == RequestType.HeartBeat:
             self.sendHeartBeatReply()
         elif requestType == RequestType.HeartBeatReply:
-            print('HeartBeatReply', data)
+            # print('HeartBeatReply', data)
+            pass
 
         
         # print(data)
@@ -183,7 +184,7 @@ class QuasselClient:
 
     def sendHeartBeat(self):
         t = datetime.datetime.now().time()
-        print('sendHeartBeat', t)
+        # print('sendHeartBeat', t)
         l = [
             RequestType.HeartBeat,
             t,
@@ -192,7 +193,7 @@ class QuasselClient:
 
     def sendHeartBeatReply(self):
         t = datetime.datetime.now().time()
-        print('sendHeartBeatReply', t)
+        # print('sendHeartBeatReply', t)
         l = [
             RequestType.HeartBeatReply,
             t,
