@@ -1,5 +1,6 @@
 from quassel import *
 import re
+import base64
 
 pushNotification = None
 
@@ -24,6 +25,9 @@ def onMessageRecieved(bot, message):
         if message['bufferInfo']['type'] == BufferInfo.Type.QueryBuffer:
             sendNotification = True
 
+    if message['flags'] & Message.Flag.Self:
+        sendNotification = False
+
     if sendNotification:
         print(message)
         if pushNotification is None:
@@ -36,7 +40,12 @@ def onMessageRecieved(bot, message):
         data = {}
         if 'webapp' in bot.config.enabledPlugins:
             data['type'] = 'link'
-            data['url'] = 'http://{}:{}/#buffer-{}'.format(bot.config.webappServerName, bot.config.webappPort, message['bufferInfo']['id'])
+            data['url'] = 'http://{}:{}/?key={}#buffer-{}'.format(*[
+                bot.config.webappServerName,
+                bot.config.webappPort,
+                base64.b64encode(bot.config.webappSessionKey).decode('utf-8'),
+                message['bufferInfo']['id'],
+            ])
 
         pushNotification.pushMessage(*[
             message['bufferInfo']['name'],
