@@ -1,6 +1,6 @@
 from enum import IntEnum
 
-class Message:
+class Message(dict):
     class Type(IntEnum):
         Plain     = 0x00001
         Notice    = 0x00002
@@ -28,6 +28,11 @@ class Message:
         Redirected = 0x04
         ServerMsg = 0x08
         Backlog = 0x80
+
+    @property
+    def senderNick(self):
+        return self['sender'].split('!')[0]
+
 
 class BufferInfo:
     class Type(IntEnum):

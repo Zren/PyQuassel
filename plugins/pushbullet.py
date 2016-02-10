@@ -33,8 +33,13 @@ def onMessageRecieved(bot, message):
                 device = pushNotification.get_device(nickname=bot.config.pushbulletDeviceName)
                 pushNotification.device = device
 
+        data = {}
+        if 'webapp' in bot.config.enabledPlugins:
+            data['type'] = 'link'
+            data['url'] = 'http://{}:{}/#buffer-{}'.format(bot.config.webappServerName, bot.config.webappPort, message['bufferInfo']['id'])
+
         pushNotification.pushMessage(*[
             message['bufferInfo']['name'],
             message['sender'].split('!')[0],
             message['content'],
-        ])
+        ], **data)

@@ -20,6 +20,8 @@ class QVariant:
             self.type = QDataStream.Type.STRING
         elif isinstance(obj, list):
             self.type = QDataStream.Type.LIST
+        elif isinstance(obj, bytes):
+            self.type = QDataStream.Type.BYTEARRAY
         elif isinstance(obj, datetime.time):
             self.type = QDataStream.Type.TIME
 
@@ -196,6 +198,8 @@ class QDataStream:
                 self.writeQString(obj)
             elif isinstance(obj, list):
                 self.writeQList(obj)
+            elif isinstance(obj, bytes):
+                self.writeQByteArray(obj)
             elif isinstance(obj, datetime.time):
                 self.writeQTime(obj)
             # Fuck
@@ -233,14 +237,17 @@ class QDataStream:
                 self << b
 
         def writeQByteArray(self, qbytearray):
+            # Support passing str (for null check)
+            if isinstance(qbytearray, str):
+                # Converts to a UTF-8 buffer
+                qbytearray = qbytearray.encode('utf-8')
+
             if qbytearray is None:
                 # Special case for NULL
                 self.writeUInt32BE(0xffffffff)
             else:
-                # Converts to a UTF-8 buffer
-                b = qbytearray.encode('utf-8')
-                self.writeUInt32BE(len(b))
-                self << b
+                self.writeUInt32BE(len(qbytearray))
+                self << qbytearray
 
         def writeQVariant(self, qvariant):
             # print(qvariant.type, qvariant.obj)

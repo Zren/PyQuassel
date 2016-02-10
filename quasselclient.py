@@ -137,7 +137,6 @@ class QuasselClient:
                 str(networkId),
             ]
             self.stream.write(l)
-            self.readPackedFunc()
 
 
     def readPackedFunc(self):
@@ -158,17 +157,34 @@ class QuasselClient:
                 networkId = int(objectName)
                 initMap = data[3]
                 # pp(initMap)
-                self.networks[networkId] = initMap
+                del data
+                del initMap['IrcUsersAndChannels']
+
+                networkInfo = {}
+                networkInfo['networkName'] = initMap['networkName']
+                self.networks[networkId] = networkInfo
                 # print(initMap['networkName'])
+                # if False:
+                #     if initMap['networkName'] == 'Freenode':
+                #         for key in initMap.keys():
+                #             print('\tinitMap[{}]'.format(key))
+                #         # del initMap['IrcUsersAndChannels']
+
+                #         with open('output-network.log', 'w') as f:
+                #             f.write(str(initMap).replace(', \'', ',\n\''))
+                #         # pp(initMap)
                 return
         elif requestType == RequestType.HeartBeat:
             self.sendHeartBeatReply()
+            return
         elif requestType == RequestType.HeartBeatReply:
             # print('HeartBeatReply', data)
-            pass
+            return
 
-        
-        # print(data)
+        # import sys
+        # output = str(data)
+        # output = output.encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding)
+        # print(output)
 
     def sendInput(self, bufferId, message):
         print('sendInput', bufferId, message)
@@ -245,7 +261,7 @@ class QuasselClient:
 
     def readPackedFunctionLoop(self):
         self.socket.socket.settimeout(15)
-        self.socket.logReadBuffer = True
+        self.socket.logReadBuffer = False
         while self.running:
             try:
                 self.readPackedFunc()
@@ -258,9 +274,14 @@ class QuasselClient:
                 if self.lastHeartBeatSentAt is None or t - self.lastHeartBeatSentAt > 60 * 1000:
                     self.sendHeartBeat()
                     self.lastHeartBeatSentAt = t
+
+                    # import gc
+                    # gc.collect()
             except socket.timeout:
                 pass
             except Exception as e:
+                import traceback
+                traceback.print_exc()
                 print('TCP >>')
                 for buf in self.socket.readBufferLog:
                     print('\t', buf)

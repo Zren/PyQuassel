@@ -10,7 +10,7 @@ class PushBulletNotification(PushBullet):
     def device_iden(self):
         return self.device['iden'] if self.device is not None else None
 
-    def pushMessage(self, channel, senderNick, messageContent):
+    def pushMessage(self, channel, senderNick, messageContent, **kwargs):
         messageFormat = '[{}] {}: {}'
         title = ''
         body = ''
@@ -33,7 +33,7 @@ class PushBulletNotification(PushBullet):
         else:
             title = messageLine
 
-        push = self.push_note(title, body, device_iden=self.device_iden)
+        push = self.push(title=title, body=body, device_iden=self.device_iden, **kwargs)
         self.activePush = push
 
 if __name__ == '__main__':
