@@ -53,7 +53,7 @@ Prints chat messages to the console.
 
 ## pushbullet
 
-### `config.py`
+`config.py`
 
 ```python
 """
@@ -77,3 +77,22 @@ pushIfKeyword = [ # Case Insensitive
 ]
 ```
 
+## webapp
+
+`config.py`
+
+```python
+"""
+Webapp to read the last 50 messages in all channels.
+The pushbullet plugin will send links to the webapp if enabled.
+"""
+webappPort = 3000
+webappServerName = 'localhost'
+
+# The session key is used instead of username/password to view the webapp.
+# If left blank, a new key is generated each run.
+# Generate a good key with: python -c "import os; print(os.urandom(24))"
+# webappSessionKey = ''
+webappSessionKey =  b'hN\xe7\xfd\x95[\xc0\xdfH\x96\xe4W\xaf\xad\xe2\x12#\xcfu\x92\x1eZ<\xf9'
+
+```

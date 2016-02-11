@@ -12,10 +12,21 @@ def onSessionStarted(bot):
     global quasselClient
     quasselClient = bot
 
-    import os
-    app.secret_key = os.urandom(24)
-    bot.config.webappSessionKey = os.urandom(24)
-    print(base64.b64encode(bot.config.webappSessionKey).decode('utf-8'))
+    import os    
+    
+    if len(bot.config.webappSessionKey) > 0:
+        if isinstance(bot.config.webappSessionKey, str):
+            bot.config.webappSessionKey = bot.config.webappSessionKey.encode('utf-8')
+        app.secret_key = bot.config.webappSessionKey # Bad?
+    else:
+        bot.config.webappSessionKey = os.urandom(24)
+        app.secret_key = os.urandom(24)
+
+    bot.config.webappUrl = 'http://{}:{}/?key={}'.format(*[
+        bot.config.webappServerName,
+        bot.config.webappPort,
+        base64.urlsafe_b64encode(bot.config.webappSessionKey).decode('utf-8'),
+    ])
 
     import threading
     thread = threading.Thread(target=app.run, kwargs={
@@ -24,6 +35,10 @@ def onSessionStarted(bot):
     })
     thread.daemon = True
     thread.start()
+
+    print('[webapp] ' + bot.config.webappUrl)
+    # import webbrowser
+    # webbrowser.open(bot.config.webappUrl)
 
 def onMessageRecieved(bot, message):
     if message['type'] in [Message.Type.Plain, Message.Type.Action]:
@@ -36,7 +51,7 @@ def require_login(f):
     def g(*args, **kwargs):
         key = request.values.get('key')
         if key:
-            key = base64.b64decode(key.encode('utf-8'))
+            key = base64.urlsafe_b64decode(key.encode('utf-8'))
             if key == quasselClient.config.webappSessionKey:
                 session['key'] = key
         

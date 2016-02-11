@@ -1,54 +1,99 @@
-{% for bufferId, messages in bufferMessages %}
-    <h1 id="buffer-{{ bufferId }}">{{ buffers[bufferId]['name'] }}</h1>
-    <table>
-        {% for message in messages %}
-            <tr>
-                <td><time data-epoch="{{ message['timestamp'] }}"></time></td>
-                <td>{{ message.senderNick }}</td>
-                <td>{{ message['content'] }}</td>
-            </tr>
-        {% endfor %}
-    </table>
-    <form action="/api/send" method="post">
-        <div>
-            <input name="bufferId" type="hidden" value="{{ bufferId }}" />
-            <input name="message" type="text" value="" />
-            <input type="submit" value="Send" />
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1" />
+    </head>
+    <body>
+        <div id="content">
+            {% for bufferId, messages in bufferMessages %}
+                <h1 id="buffer-{{ bufferId }}">{{ buffers[bufferId]['name'] }}</h1>
+                <table>
+                    {% for message in messages %}
+                        <tr>
+                            <td><time data-epoch="{{ message['timestamp'] }}"></time></td>
+                            <td>{{ message.senderNick }}</td>
+                            <td>{{ message['content'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                <form action="/api/send" method="post">
+                    <div>
+                        <input name="bufferId" type="hidden" value="{{ bufferId }}" />
+                        <input name="message" type="text" value="" />
+                        <input type="submit" value="Send" />
+                    </div>
+                </form>
+            {% endfor %}
         </div>
-    </form>
-{% endfor %}
-<script>
-    Array.prototype.forEach.call(document.querySelectorAll('time'), function(e) {
-        var d = new Date(e.getAttribute('data-epoch')*1000);
-        e.innerText = d.toTimeString().split(' ')[0];
-    });
-</script>
-<style>
-    td {
-        font-family: Consolas;
-        vertical-align: top;
-        padding: 0 0.5em;
-    }
-    td:nth-of-type(1) {
-        color: #444;
-    }
-    td:nth-of-type(2) {
-        font-weight: bold;
-        text-align: right;
-    }
-    td:nth-of-type(3) {
-        
-    }
-    form > div {
-        display: table;
-        width: 100%;
-    }
-    form input[type="text"] {
-        display: table-cell;
-        width: calc(100% - 60px);
-    }
-    form input[type="submit"] {
-        display: table-cell;
-        width: 60px;
-    }
-</style>
+
+        <script>
+            function formatDates() {
+                Array.prototype.forEach.call(document.querySelectorAll('time'), function(e) {
+                    var d = new Date(e.getAttribute('data-epoch')*1000);
+                    var tokens = d.toTimeString().split(':');
+                    e.innerText = tokens[0] +':' + tokens[1];
+                });
+            }
+
+            function update() {
+                if (document.activeElement && document.activeElement.tagName === 'INPUT')
+                    return;
+                
+                fetch(document.location.href).then(function(response){
+                    return response.text();
+                }).then(function(html){
+                    var parser = new DOMParser();
+                    var doc = parser.parseFromString(html, 'text/xml');
+                    console.log(doc);
+                    window.doc = doc;
+
+                    document.querySelector('#content').innerHTML = doc.querySelector('#content').innerHTML;
+                    formatDates();
+                });
+            }
+            setInterval(update, 30000);
+            formatDates();
+        </script>
+        <style>
+            td {
+                font-family: Consolas;
+                vertical-align: top;
+                padding: 0 0.5em;
+            }
+            td:nth-of-type(1) {
+                color: #444;
+            }
+            td:nth-of-type(2) {
+                font-weight: bold;
+                text-align: right;
+            }
+            td:nth-of-type(3) {
+                word-break: break-word;
+            }
+            form > div {
+                display: table;
+                width: 100%;
+            }
+            form input[type="text"] {
+                display: table-cell;
+                width: calc(100% - 60px);
+            }
+            form input[type="submit"] {
+                display: table-cell;
+                width: 60px;
+            }
+
+            @media (min-width: 1px) and (max-width: 768px) {
+                table,tbody,tr {
+                    display: block;
+                }
+                td {
+                    display: inline;
+                }
+                td:nth-of-type(1) {
+                    display: none;
+                }
+            }
+        </style>
+
+    </body>
+</html>

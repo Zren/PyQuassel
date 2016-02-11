@@ -40,10 +40,8 @@ def onMessageRecieved(bot, message):
         data = {}
         if 'webapp' in bot.config.enabledPlugins:
             data['type'] = 'link'
-            data['url'] = 'http://{}:{}/?key={}#buffer-{}'.format(*[
-                bot.config.webappServerName,
-                bot.config.webappPort,
-                base64.b64encode(bot.config.webappSessionKey).decode('utf-8'),
+            data['url'] = '{}#buffer-{}'.format(*[
+                bot.config.webappUrl,
                 message['bufferInfo']['id'],
             ])
 
