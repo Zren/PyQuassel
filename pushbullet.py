@@ -29,8 +29,6 @@ class PushBullet:
         return self._request(*args, method='GET', **kwargs)
 
     def _post(self, *args, **kwargs):
-
-        print(kwargs)
         return self._request(*args, method='POST', **kwargs)
 
     def _delete(self, *args, **kwargs):
