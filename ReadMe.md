@@ -53,6 +53,10 @@ Prints chat messages to the console.
 
 ## pushbullet
 
+Recieve push notifications for specific keywords or from query buffers. Current nick/highlight support not yet available.
+
+![](https://i.imgur.com/G9lH5q8.png) ![](https://i.imgur.com/N9FjdB0.png)
+
 `config.py`
 
 ```python
@@ -78,6 +82,10 @@ pushIfKeyword = [ # Case Insensitive
 ```
 
 ## webapp
+
+A very simple webserver to glance at recent messages. When enabled, the bot uses a total ~30 Mb of RAM.
+
+![](https://i.imgur.com/49Kqeie.png)
 
 `config.py`
 
