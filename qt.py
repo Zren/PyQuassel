@@ -11,25 +11,44 @@ class QVariant:
     def __init__(self, obj):
         self.obj = obj
         if isinstance(obj, bool):
-            self.type = QDataStream.Type.BOOL
+            self.type = QVariant.Type.BOOL
         elif isinstance(obj, int):
-            self.type = QDataStream.Type.UINT
+            self.type = QVariant.Type.UINT
         elif isinstance(obj, dict):
-            self.type = QDataStream.Type.MAP
+            self.type = QVariant.Type.MAP
         elif isinstance(obj, str):
-            self.type = QDataStream.Type.STRING
+            self.type = QVariant.Type.STRING
         elif isinstance(obj, list):
-            self.type = QDataStream.Type.LIST
+            self.type = QVariant.Type.LIST
         elif isinstance(obj, bytes):
-            self.type = QDataStream.Type.BYTEARRAY
+            self.type = QVariant.Type.BYTEARRAY
         elif isinstance(obj, datetime.time):
-            self.type = QDataStream.Type.TIME
+            self.type = QVariant.Type.TIME
+
+    class Type(IntEnum):
+        # https://github.com/radekp/qt/blob/master/src/corelib/kernel/qvariant.h#L102
+        # https://github.com/sandsmark/QuasselDroid/blob/8d8d7b34a515dfc7c570a5fa7392b877206b385b/QuasselDroid/src/main/java/com/iskrembilen/quasseldroid/protocol/qtcomm/QVariantType.java
+        BOOL = 1
+        INT = 2
+        UINT = 3
+        LONG = 4
+        ULONG = 5
+        CHAR = 7
+        MAP = 8
+        LIST = 9
+        STRING = 10
+        STRINGLIST = 11
+        BYTEARRAY = 12
+        TIME = 15
+        DATETIME = 16
+        USERTYPE = 127
+        USHORT = 133
 
 class QUserType(QVariant, dict):
     def __init__(self, name, obj):
         super().__init__(obj)
         self.name = name
-        self.type = QDataStream.Type.USERTYPE
+        self.type = QVariant.Type.USERTYPE
 
     def __repr__(self):
         return self.obj.__repr__()
@@ -140,24 +159,6 @@ class QDataStream:
         b = struct.unpack('?', buf)[0]
         return b
 
-    class Type(IntEnum):
-        # https://github.com/sandsmark/QuasselDroid/blob/8d8d7b34a515dfc7c570a5fa7392b877206b385b/QuasselDroid/src/main/java/com/iskrembilen/quasseldroid/protocol/qtcomm/QVariantType.java
-        BOOL = 1
-        INT = 2
-        UINT = 3
-        LONG = 4
-        ULONG = 5
-        CHAR = 7
-        MAP = 8
-        LIST = 9
-        STRING = 10
-        STRINGLIST = 11
-        BYTEARRAY = 12
-        TIME = 15
-        DATETIME = 16
-        USERTYPE = 127
-        USHORT = 133
-
 
     class Writer:
         def __init__(self, obj):
@@ -253,7 +254,7 @@ class QDataStream:
             # print(qvariant.type, qvariant.obj)
             self.writeUInt32BE(qvariant.type)
             self.writeBool(qvariant.obj is None)
-            if qvariant.type == QDataStream.Type.USERTYPE:
+            if qvariant.type == QVariant.Type.USERTYPE:
                 self.writeQByteArray(qvariant.name)
                 if qvariant.name == 'BufferInfo':
                     self.writeQInt(qvariant.obj['id'])
@@ -297,7 +298,7 @@ class QDataStream:
         # ftm += ""
         # bufs = []
         # size = 0
-        # type = QDataStream.Types.Map
+        # type = QVariant.Types.Map
         # buf = 
 
     def read(self):
@@ -318,47 +319,47 @@ class QDataStream:
     def readQVariant(self):
         variantType = self.readUInt32BE()
         try:
-            variantType = QDataStream.Type(variantType)
+            variantType = QVariant.Type(variantType)
         except ValueError:
 
             m = self.readQUInt()
             print(m)
-            raise Exception('QDataStream.Type', variantType)
+            raise Exception('QVariant.Type', variantType)
 
         # print('  QVariant.type', variantType)
         isNull = self.readBool()
         # print('  QVariant.isNull', isNull)
 
-        if variantType == QDataStream.Type.MAP:
+        if variantType == QVariant.Type.MAP:
             val = self.readQMap()
-        elif variantType == QDataStream.Type.BOOL:
+        elif variantType == QVariant.Type.BOOL:
             val = self.readQBool()
-        elif variantType == QDataStream.Type.STRING:
+        elif variantType == QVariant.Type.STRING:
             val = self.readQString()
-        elif variantType == QDataStream.Type.CHAR:
+        elif variantType == QVariant.Type.CHAR:
             val = self.device.read(2)
             val = val.decode('utf_16_be')
-        elif variantType == QDataStream.Type.INT:
+        elif variantType == QVariant.Type.INT:
             val = self.readQInt()
-        elif variantType == QDataStream.Type.UINT:
+        elif variantType == QVariant.Type.UINT:
             val = self.readQUInt()
-        elif variantType == QDataStream.Type.LIST:
+        elif variantType == QVariant.Type.LIST:
             val = self.readQList()
-        elif variantType == QDataStream.Type.STRINGLIST:
+        elif variantType == QVariant.Type.STRINGLIST:
             val = self.readQStringList()
-        elif variantType == QDataStream.Type.BYTEARRAY:
+        elif variantType == QVariant.Type.BYTEARRAY:
             val = self.readQByteArray()
-        elif variantType == QDataStream.Type.USHORT:
+        elif variantType == QVariant.Type.USHORT:
             val = self.readQUShort()
-        elif variantType == QDataStream.Type.TIME:
+        elif variantType == QVariant.Type.TIME:
             secondsSinceMidnight = self.readQUInt()
             val = 1
-        elif variantType == QDataStream.Type.DATETIME:
+        elif variantType == QVariant.Type.DATETIME:
             julianDay = self.readQUInt()
             secondsSinceMidnight = self.readQUInt()
             isUTC = self.readBool()
             val = 1
-        elif variantType == QDataStream.Type.USERTYPE:
+        elif variantType == QVariant.Type.USERTYPE:
             name = self.readQByteArray()
             name = name.decode('utf-8')
             name = name.rstrip('\0')
