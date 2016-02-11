@@ -38,17 +38,23 @@
                 if (document.activeElement && document.activeElement.tagName === 'INPUT')
                     return;
                 
-                fetch(document.location.href).then(function(response){
-                    return response.text();
-                }).then(function(html){
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', '/', true);
+
+                xhr.onload = function() {
+                  if (this.status == 200) {
+                    var html =  this.responseText;
+
                     var parser = new DOMParser();
-                    var doc = parser.parseFromString(html, 'text/xml');
+                    var doc = parser.parseFromString(html, 'text/html');
                     console.log(doc);
                     window.doc = doc;
 
                     document.querySelector('#content').innerHTML = doc.querySelector('#content').innerHTML;
                     formatDates();
-                });
+                  }
+                };
+                xhr.send();
             }
             setInterval(update, 30000);
             formatDates();
