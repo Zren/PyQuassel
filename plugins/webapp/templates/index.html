@@ -4,25 +4,36 @@
     </head>
     <body>
         <div id="content">
-            {% for bufferId, messages in bufferMessages %}
-                <h1 id="buffer-{{ bufferId }}">{{ buffers[bufferId]['name'] }}</h1>
-                <table>
-                    {% for message in messages %}
-                        <tr>
-                            <td><time data-epoch="{{ message['timestamp'] }}"></time></td>
-                            <td>{{ message.senderNick }}</td>
-                            <td>{{ message['content'] }}</td>
-                        </tr>
-                    {% endfor %}
-                </table>
-                <form action="/api/send" method="post">
-                    <div>
-                        <input name="bufferId" type="hidden" value="{{ bufferId }}" />
-                        <input name="message" type="text" value="" />
-                        <input type="submit" value="Send" />
+            <div id="chatlist">
+                {% for networkId, bufferIdList in chatList %}
+                    <div class="network">
+                        <h1>{{ networks[networkId]['name'] }}</h1>
+                        
+                        {% for bufferId in bufferIdList %}
+                        <div class="buffer">
+                            <h2 id="buffer-{{ bufferId }}">{{ buffers[bufferId]['name'] }}</h2>
+                            <div class="bufferview">
+                                <div id="buffer-{{ bufferId }}-messages" class="buffer-messages">
+                                    {% for message in buffers[bufferId]['messages'] %}
+                                        <div class="message">
+                                            <span class="timestamp"><time data-epoch="{{ message['timestamp']}}" /></span>
+                                            <span class="sender">{{ message['sender'] }}</span>
+                                            <span class="content">{{ message['content'] }}</span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
-                </form>
-            {% endfor %}
+                {% endfor %}
+            </div>
+            <div class="bufferview">
+                {% for bufferId, buffer in buffers.items() %}
+                
+                {% endfor %}
+            </div>
+            <div class="userinput"></div>
         </div>
 
         <script>
@@ -32,6 +43,17 @@
                     var tokens = d.toTimeString().split(':');
                     e.innerText = tokens[0] +':' + tokens[1];
                 });
+            }
+            function formatContent() {
+                // http://stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url
+                var urlRegex = /(https?:\/\/[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))/;
+                Array.prototype.forEach.call(document.querySelectorAll('.message .content'), function(e) {
+                    e.innerHTML = e.innerHTML.replace(urlRegex, '<a href="$1">$1</a>');
+                });
+            }
+            function formatMessages() {
+                formatDates();
+                formatContent();
             }
 
             function update() {
@@ -51,28 +73,38 @@
                     window.doc = doc;
 
                     document.querySelector('#content').innerHTML = doc.querySelector('#content').innerHTML;
-                    formatDates();
+                    formatMessages();
                   }
                 };
                 xhr.send();
             }
             setInterval(update, 30000);
-            formatDates();
+            formatMessages();
         </script>
         <style>
-            td {
+            .bufferview {
+                display: table;
+            }
+            .buffer-messages {
+                display: table-row;
+            }
+            .message {
+                display: table-row;
+            }
+            .message > * {
+                display: table-cell;
                 font-family: Consolas;
                 vertical-align: top;
                 padding: 0 0.5em;
             }
-            td:nth-of-type(1) {
+            .message .timestamp {
                 color: #444;
             }
-            td:nth-of-type(2) {
+            .message .sender {
                 font-weight: bold;
                 text-align: right;
             }
-            td:nth-of-type(3) {
+            .message .content {
                 word-break: break-word;
             }
             form > div {
@@ -89,13 +121,14 @@
             }
 
             @media (min-width: 1px) and (max-width: 768px) {
-                table,tbody,tr {
-                    display: block;
+                .buffer-messages,
+                .message {
+                    /*display: block;*/
                 }
-                td {
-                    display: inline;
+                .message > * {
+                    /*display: inline;*/
                 }
-                td:nth-of-type(1) {
+                .message .timestamp {
                     display: none;
                 }
             }

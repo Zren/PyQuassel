@@ -2,10 +2,7 @@ from enum import Enum, IntEnum
 import socket
 import struct
 import datetime
-
-import json
-def pp(data):
-    print(json.dumps(data, sort_keys=True, indent=4))
+from pprint import pprint
 
 class QVariant:
     def __init__(self, obj):
@@ -311,7 +308,7 @@ class QDataStream:
         # print('buffer size:', size)
         obj = self.readQVariant()
 
-        # pp(obj)
+        # pprint(obj)
         # print(obj)
 
         return obj
