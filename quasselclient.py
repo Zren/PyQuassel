@@ -135,6 +135,16 @@ class QuasselClient:
             ]
             self.stream.write(l)
 
+    def sendBufferInits(self):
+        for bufferId, buffer in self.buffers.items():
+            # print(networkId)
+            l = [
+                RequestType.InitRequest,
+                'IrcChannel',
+                '{}/{}'.format(buffer['network'], buffer['name']),
+            ]
+            self.stream.write(l)
+
 
     def readPackedFunc(self):
         data = self.stream.read()
@@ -170,6 +180,18 @@ class QuasselClient:
                 #         with open('output-network.log', 'w') as f:
                 #             f.write(str(initMap).replace(', \'', ',\n\''))
                 #         # pprint(initMap)
+                return
+            elif className == b'IrcChannel':
+                networkId, bufferName = objectName.split('/')
+                networkId = int(networkId)
+                for buffer in self.buffers.values():
+                    if buffer['network'] == networkId and buffer['name'] == bufferName:
+                        initMap = data[3]
+                        del data
+                        del initMap['UserModes']
+                        buffer['isJoined'] = True
+                        buffer['topic'] = initMap['topic']
+                        break
                 return
         elif requestType == RequestType.HeartBeat:
             self.sendHeartBeatReply()
@@ -286,6 +308,7 @@ class QuasselClient:
 
     def onSessionStarted(self):
         self.sendNetworkInits() # Slooooow.
+        self.sendBufferInits()
 
     def onMessageRecieved(self, message):
         pass

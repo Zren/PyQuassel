@@ -49,6 +49,7 @@ class QuasselBot(QuasselClient):
 
     def onSessionStarted(self):
         # self.sendNetworkInits() # Slooooow. Also adds 4-8 Mb to RAM.
+        # self.sendBufferInits()
 
         self.pluginCall('onSessionStarted')
 
