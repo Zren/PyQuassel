@@ -70,14 +70,11 @@ class PushBullet:
 
 if __name__ == '__main__':
     import re
-    def pp(data):
-        s = json.dumps(data, sort_keys=True, indent=4)
-        s = re.sub(r'(\{|\[)\n\s+', r'\1   ', s)
-        print(s)
+    from pprint import pprint
         
     import config
     p = PushBullet(config.pushbulletAccessToken)
     # device_list = p.get_device_list()
-    # pp(device_list)
+    # pprint(device_list)
     device = p.get_device(nickname=config.pushbulletDeviceName)
     push = p.push_note('Meh', 'test', device_iden=device['iden'])

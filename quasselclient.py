@@ -1,10 +1,7 @@
 import socket
 import time
 import datetime
-
-import json
-def pp(data):
-    print(json.dumps(data, sort_keys=True, indent=4))
+from pprint import pprint
 
 from qt import *
 from quassel import *
@@ -156,7 +153,7 @@ class QuasselClient:
             if className == b'Network':
                 networkId = int(objectName)
                 initMap = data[3]
-                # pp(initMap)
+                # pprint(initMap)
                 del data
                 del initMap['IrcUsersAndChannels']
 
@@ -172,7 +169,7 @@ class QuasselClient:
 
                 #         with open('output-network.log', 'w') as f:
                 #             f.write(str(initMap).replace(', \'', ',\n\''))
-                #         # pp(initMap)
+                #         # pprint(initMap)
                 return
         elif requestType == RequestType.HeartBeat:
             self.sendHeartBeatReply()
@@ -195,7 +192,7 @@ class QuasselClient:
             QUserType('BufferInfo', bufferInfo),
             message,
         ]
-        pp(l)
+        pprint(l)
         self.stream.write(l)
 
     def sendHeartBeat(self):
