@@ -4,6 +4,7 @@ Using urllib instead of requests to shave off ~1Mb of RAM.
 """
 
 import urllib.request
+import urllib.error
 import json
 
 class JsonSession:
@@ -56,7 +57,10 @@ class PushBullet:
         return None
 
     def get_push(self, push_iden):
-        return self.session.get('https://api.pushbullet.com/v2/pushes/' + push_iden)
+        try:
+            return self.session.get('https://api.pushbullet.com/v2/pushes/' + push_iden)
+        except urllib.error.HTTPError:
+            return None # Push was deleted
 
     def delete_push(self, push_iden):
         return self.session.delete('https://api.pushbullet.com/v2/pushes/' + push_iden)
@@ -79,8 +83,13 @@ if __name__ == '__main__':
         
     import config
     p = PushBullet(config.pushbulletAccessToken)
+
     # device_list = p.get_device_list()
     # pprint(device_list)
+
     device = p.get_device(nickname=config.pushbulletDeviceName)
     device_iden = None if device is None else device['iden']
     push = p.push_note('Meh', 'test', device_iden=device_iden)
+
+    # push = p.get_push('ujAjoxHjkmisjAmJtb1z08')
+    # pprint(push)
