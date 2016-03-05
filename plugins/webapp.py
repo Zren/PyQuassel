@@ -90,5 +90,5 @@ def internal_error(error):
     tb = traceback.format_exc()
     import logging
     logging.error(tb)
-    return "<h1>500: Internal Error</h1><pre>{0}</pre>".format(tb)
+    return "<h1>500: Internal Error</h1><pre>{0}</pre>".format(tb), 500
 
