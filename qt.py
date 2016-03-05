@@ -227,6 +227,9 @@ class QDataStream:
             t += int(qtime.microsecond/1000)
             self.writeUInt32BE(t)
 
+        def writeQDateTime(self, qdatetime):
+            pass
+
         def writeQString(self, qstring):
             if qstring is None:
                 # Special case for NULL
@@ -352,13 +355,9 @@ class QDataStream:
         elif variantType == QVariant.Type.USHORT:
             val = self.readQUShort()
         elif variantType == QVariant.Type.TIME:
-            secondsSinceMidnight = self.readQUInt()
-            val = 1
+            val = self.readQTime()
         elif variantType == QVariant.Type.DATETIME:
-            julianDay = self.readQUInt()
-            secondsSinceMidnight = self.readQUInt()
-            isUTC = self.readBool()
-            val = 1
+            val = self.readQDateTime()
         elif variantType == QVariant.Type.USERTYPE:
             name = self.readQByteArray()
             name = name.decode('utf-8')
@@ -414,6 +413,53 @@ class QDataStream:
 
     def readQUShort(self):
         return self.readUInt16BE()
+
+    def readQTime(self):
+        # https://github.com/sandsmark/QuasselDroid/blob/8d8d7b34a515dfc7c570a5fa7392b877206b385b/QuasselDroid/src/main/java/com/iskrembilen/quasseldroid/protocol/qtcomm/serializers/QTime.java
+        millisSinceMidnight = self.readQUInt()
+        hour = millisSinceMidnight // 3600000
+        minute = (millisSinceMidnight - (hour * 3600000)) // 60000
+        second = (millisSinceMidnight - (hour * 3600000) - (minute * 60000)) // 1000
+        millis = millisSinceMidnight - (hour * 3600000) - (minute * 60000) - (second * 1000)
+        t = datetime.time(hour, minute, second, microsecond=millis*1000)
+        return t
+
+    def readQDateTime(self):
+        # https://github.com/magne4000/node-qtdatastream/blob/master/lib/reader.js#L146
+        # https://github.com/sandsmark/QuasselDroid/blob/master/QuasselDroid/src/main/java/com/iskrembilen/quasseldroid/protocol/qtcomm/serializers/QDateTime.java
+        # https://github.com/radekp/qt/blob/master/src/corelib/tools/qdatetime.cpp#L126
+        julianDay = self.readQUInt()
+        J = float(julianDay) + 0.5
+        j = int(J + 32044)
+        g = j // 146097;
+        dg = j % 146097;
+        c = (((dg // 36524) + 1) * 3) // 4
+        dc = dg - c * 36524
+        b = dc // 1461;
+        db = dc % 1461
+        a = (db // 365 + 1) * 3 // 4
+        da = db - a * 365
+        y = g * 400 + c * 100 + b * 4 + a
+        m = (da * 5 + 308) // 153 - 2
+        d = da - (m + 4) * 153 // 5 + 122
+
+        year = int(y - 4800 + (m + 2) // 12)
+        month = int((m + 2) % 12 + 1)
+        day = int(d + 1)
+
+
+        secondsSinceMidnight = self.readQUInt()
+        hour = secondsSinceMidnight // 3600000
+        minute = (secondsSinceMidnight - (hour * 3600000)) // 60000
+        second = (secondsSinceMidnight - (hour * 3600000) - (minute * 60000)) // 1000
+        
+        t = datetime.datetime(year, month, day, hour, minute, second)
+
+        isUTC = self.readBool()
+        if isUTC:
+            t = t.replace(tzinfo=datetime.timezone.utc)
+
+        return t
 
     def readQList(self):
         size = self.readUInt32BE()

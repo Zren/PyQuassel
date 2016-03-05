@@ -32,7 +32,7 @@ class QuasselQDataStream(QDataStream):
         elif name == 'Message':
             val = {}
             val['id'] = self.readQInt()
-            val['timestamp'] = self.readQUInt()
+            val['timestamp'] = datetime.datetime.fromtimestamp(self.readQUInt())
             val['type'] = Message.Type(self.readQUInt())
             val['flags'] = Message.Flag(self.readUInt8())
             val['bufferInfo'] = self.readUserType('BufferInfo')
