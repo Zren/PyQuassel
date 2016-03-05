@@ -1,22 +1,18 @@
 """
 Uses 6Mb less RAM than the pushbullet python library.
+Using urllib instead of requests to shave off ~1Mb of RAM.
 """
 
 import urllib.request
 import json
 
-class PushBullet:
-    def __init__(self, access_token):
-        self.access_token = access_token
-        self.session_headers = {
-            'Access-Token': self.access_token,
-            'Content-Type': 'application/json',
-        }
+class JsonSession:
+    def __init__(self):
+        self.headers = {}
 
-    # JSON HTTP Requests
-    def _request(self, url, data=None, headers=None, method='GET'):
+    def request(self, url, data=None, headers=None, method='GET'):
         payload = json.dumps(data).encode('latin1') if data else None
-        req_headers = self.session_headers
+        req_headers = self.headers
         if headers:
             req_headers = req_headers.copy().update(headers)
         
@@ -25,25 +21,34 @@ class PushBullet:
             res_data = res.read().decode('utf-8')
             return json.loads(res_data)
 
-    def _get(self, *args, **kwargs):
-        return self._request(*args, method='GET', **kwargs)
+    def get(self, *args, **kwargs):
+        return self.request(*args, method='GET', **kwargs)
 
-    def _post(self, *args, **kwargs):
-        return self._request(*args, method='POST', **kwargs)
+    def post(self, *args, **kwargs):
+        return self.request(*args, method='POST', **kwargs)
 
-    def _delete(self, *args, **kwargs):
-        return self._request(*args, method='DELETE', **kwargs)
+    def delete(self, *args, **kwargs):
+        return self.request(*args, method='DELETE', **kwargs)
 
+
+class PushBullet:
+    def __init__(self, access_token):
+        self.access_token = access_token
+        self.session = JsonSession()
+        self.session.headers = {
+            'Access-Token': self.access_token,
+            'Content-Type': 'application/json',
+        }
 
     def get_device_list(self):
         # https://docs.pushbullet.com/#list-devices
-        data = self._get('https://api.pushbullet.com/v2/devices')
+        data = self.session.get('https://api.pushbullet.com/v2/devices')
         return data['devices']
 
     def get_device(self, iden=None, nickname=None):
         device_list = self.get_device_list()
         for device in device_list:
-            print(device)
+            # pprint(device)
             if iden is not None and iden == device['iden']:
                 return device
             if nickname is not None and nickname == device.get('nickname'):
@@ -51,14 +56,14 @@ class PushBullet:
         return None
 
     def get_push(self, push_iden):
-        return self._get('https://api.pushbullet.com/v2/pushes/' + push_iden)
+        return self.session.get('https://api.pushbullet.com/v2/pushes/' + push_iden)
 
     def delete_push(self, push_iden):
-        return self._delete('https://api.pushbullet.com/v2/pushes/' + push_iden)
+        return self.session.delete('https://api.pushbullet.com/v2/pushes/' + push_iden)
 
     def push(self, **kwargs):
         # https://docs.pushbullet.com/#create-push
-        return self._post('https://api.pushbullet.com/v2/pushes', data=kwargs)
+        return self.session.post('https://api.pushbullet.com/v2/pushes', data=kwargs)
         
     def push_note(self, title, body, device_iden=None):
         data = {}
@@ -77,4 +82,5 @@ if __name__ == '__main__':
     # device_list = p.get_device_list()
     # pprint(device_list)
     device = p.get_device(nickname=config.pushbulletDeviceName)
-    push = p.push_note('Meh', 'test', device_iden=device['iden'])
+    device_iden = None if device is None else device['iden']
+    push = p.push_note('Meh', 'test', device_iden=device_iden)
