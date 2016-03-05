@@ -9,7 +9,7 @@
                 <table>
                     {% for message in messages %}
                         <tr>
-                            <td><time data-epoch="{{ message['timestamp'] }}"></time></td>
+                            <td><time data-time="{{ message['timestamp'] }}"></time></td>
                             <td>{{ message.senderNick }}</td>
                             <td>{{ message['content'] }}</td>
                         </tr>
@@ -28,7 +28,7 @@
         <script>
             function formatDates() {
                 Array.prototype.forEach.call(document.querySelectorAll('time'), function(e) {
-                    var d = new Date(e.getAttribute('data-epoch')*1000);
+                    var d = new Date(e.getAttribute('data-time'));
                     var tokens = d.toTimeString().split(':');
                     e.innerText = tokens[0] +':' + tokens[1];
                 });
