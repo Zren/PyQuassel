@@ -33,7 +33,7 @@ class PushBulletNotification(PushBullet):
         else:
             title = messageLine
 
-        push = self.push(title=title, body=body, device_iden=self.device_iden, **kwargs)
+        push = self.push_note(title=title, body=body, device_iden=self.device_iden, **kwargs)
         self.activePush = push
 
 if __name__ == '__main__':

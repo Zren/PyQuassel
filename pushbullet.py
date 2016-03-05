@@ -69,12 +69,12 @@ class PushBullet:
         # https://docs.pushbullet.com/#create-push
         return self.session.post('https://api.pushbullet.com/v2/pushes', data=kwargs)
         
-    def push_note(self, title, body, device_iden=None):
+    def push_note(self, title, body, **kwargs):
         data = {}
         data['type'] = 'note'
         data['title'] = title
         data['body'] = body
-        data['device_iden'] = device_iden
+        data.update(kwargs)
         return self.push(**data)
 
 if __name__ == '__main__':
