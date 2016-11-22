@@ -1,6 +1,6 @@
 # PyQuassel
 
-Pure python implementation of QuasselClient. Doesn't depend on any PySide/PyQt libraries.
+Pure python 3 implementation of QuasselClient. Doesn't depend on any PySide/PyQt libraries.
 
 Based on:
  * https://github.com/magne4000/node-libquassel/
