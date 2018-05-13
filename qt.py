@@ -70,6 +70,9 @@ class QTcpSocket:
 
     def read(self, maxSize):
         buf = self.socket.recv(maxSize)
+        while len(buf) < maxSize:
+            buf += self.socket.recv(maxSize - len(buf))
+
         # print('QTcpSocket >>', buf)
         if self.logReadBuffer:
             self.readBufferLog.append(buf)
