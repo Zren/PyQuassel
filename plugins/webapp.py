@@ -107,6 +107,11 @@ def api_buffer_messages(bufferId):
         'senderNick': message.senderNick,
         'content': message['content'],
     } for message in bufferMessages[bufferId]]
+    
+    afterMessageId = int(request.args.get('afterMessageId', 0))
+    curBufferMessages = filter(lambda m: m['id'] > afterMessageId, curBufferMessages)
+    curBufferMessages = list(curBufferMessages)
+    
     return jsonify(messages=curBufferMessages)
 
 
