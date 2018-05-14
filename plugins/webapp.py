@@ -76,9 +76,9 @@ def index():
         'buffers': quasselClient.buffers,
     })
 
-@app.route('/api/send', methods=['GET', 'POST'])
+@app.route('/api/send', methods=['POST'])
 @require_login
-def send():
+def api_send():
     bufferId = int(request.values.get('bufferId'))
     message = request.values.get('message')
     quasselClient.sendInput(bufferId, message)
