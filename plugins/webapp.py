@@ -1,6 +1,6 @@
 import re
 import base64
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, jsonify
 from quassel import *
 from collections import defaultdict, deque
 
@@ -83,6 +83,32 @@ def api_send():
     message = request.values.get('message')
     quasselClient.sendInput(bufferId, message)
     return redirect('/')
+
+@app.route('/api/buffers/')
+@require_login
+def api_buffers():
+    return jsonify(buffers=quasselClient.buffers)
+
+@app.route('/api/buffers/<int:bufferId>/')
+@require_login
+def api_buffer(bufferId):
+    return jsonify(**quasselClient.buffers[bufferId])
+
+@app.route('/api/buffers/<int:bufferId>/messages/')
+@require_login
+def api_buffer_messages(bufferId):
+    curBufferMessages = [{
+        'id': message['id'],
+        'bufferId': message['bufferInfo']['id'],
+        'type': message['type'],
+        'flags': message['flags'],
+        'timestamp': message['timestamp'],
+        'sender': message['sender'],
+        'senderNick': message.senderNick,
+        'content': message['content'],
+    } for message in bufferMessages[bufferId]]
+    return jsonify(messages=curBufferMessages)
+
 
 @app.errorhandler(Exception)
 def internal_error(error):
