@@ -35,7 +35,8 @@ html, body, #app, #sidebar, #bufferview, #messages {
 
 #inputrow form {
 	width: 100%;
-	margin-bottom: 10px;
+	margin-bottom: 0;
+	padding: 2px;
 }
 
 td {
@@ -60,10 +61,13 @@ form > div {
 form input[type="text"] {
 	display: table-cell;
 	width: calc(100% - 60px);
+	font-size: 14px;
+	height: 28px;
 }
 form input[type="submit"] {
 	display: table-cell;
 	width: 60px;
+	height: 28px;
 }
 
 @media (min-width: 1px) and (max-width: 768px) {
@@ -103,7 +107,7 @@ form input[type="submit"] {
 				<form action="/api/send" method="post">
 					<div>
 						<input name="bufferId" type="hidden" value="invalidBufferId" />
-						<input name="message" type="text" value="" />
+						<input name="message" type="text" value="" autocomplete="off" />
 						<input type="submit" value="Send" />
 					</div>
 				</form>
