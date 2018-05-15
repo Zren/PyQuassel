@@ -76,6 +76,13 @@ def index():
         'buffers': quasselClient.buffers,
     })
 
+@app.route('/buffer/<int:bufferId>/')
+@require_login
+def buffer(bufferId):
+    return render_template('buffer.html', **{
+        'bufferId': bufferId,
+    })
+
 @app.route('/api/send', methods=['POST'])
 @require_login
 def api_send():
