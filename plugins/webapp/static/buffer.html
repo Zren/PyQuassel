@@ -118,6 +118,19 @@ var el = function(html) {
 	return e.removeChild(e.firstChild)
 }
 
+var sanitizeText = function(str) {
+	str = str.replace(/\</g, '&lt;')
+	str = str.replace(/\>/g, '&gt;')
+	return str
+}
+
+// https://stackoverflow.com/questions/37684/how-to-replace-plain-urls-with-links
+// http://, https://, ftp://
+var linkifyUrlPattern = /\b(?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim;
+var linkify = function(str) {
+    return str.replace(linkifyUrlPattern, '<a target="_blank" href="$&">$&</a>')
+}
+
 class Message {
 	constructor(data) {
 		Object.assign(this, data)
@@ -138,7 +151,7 @@ class Message {
 	}
 	renderContent() {
 		var td = document.createElement('td')
-		td.innerText = this.content
+		td.innerHTML = linkify(sanitizeText(this.content))
 		return td
 	}
 	renderRow() {
