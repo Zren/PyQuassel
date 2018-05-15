@@ -1,0 +1,243 @@
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1" />
+	<title>PyQuassel WebApp</title>
+	<style>
+* {
+	box-sizing: border-box;
+}
+
+html, body, #app, #sidebar, #bufferview, #messages {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+#app, #sidebar, #bufferview, #messages {
+	display: flex;
+}
+
+#sidebar {
+	max-width: 180px;
+}
+
+#bufferview {
+	flex-direction: column;
+}
+
+#messages {
+	overflow: auto;
+}
+
+#inputrow form {
+	width: 100%;
+	margin-bottom: 10px;
+}
+
+td {
+	font-family: Consolas;
+	vertical-align: top;
+	padding: 0 0.5em;
+}
+td:nth-of-type(1) {
+	color: #444;
+}
+td:nth-of-type(2) {
+	font-weight: bold;
+	text-align: right;
+}
+td:nth-of-type(3) {
+	word-break: break-word;
+}
+form > div {
+	display: table;
+	width: 100%;
+}
+form input[type="text"] {
+	display: table-cell;
+	width: calc(100% - 60px);
+}
+form input[type="submit"] {
+	display: table-cell;
+	width: 60px;
+}
+
+@media (min-width: 1px) and (max-width: 768px) {
+	#sidebar {
+		position: absolute;
+	}
+	table,tbody,tr {
+		display: block;
+	}
+	td {
+		display: inline;
+	}
+	td:nth-of-type(1) {
+		display: none;
+	}
+	td:nth-of-type(2) {
+		padding-left: 0;
+	}
+	td:nth-of-type(2):after {
+		content: ":";
+	}
+	td:nth-of-type(3) {
+		padding-left: 0;
+	}
+}
+	</style>
+</head>
+<body>
+	<div id="app">
+		<div id="sidebar">
+		</div>
+		<div id="bufferview">
+			<table id="messages">
+				<tbody></tbody>
+			</table>
+			<div id="inputrow">
+				<form action="/api/send" method="post">
+					<div>
+						<input name="bufferId" type="hidden" value="{{ bufferId }}" />
+						<input name="message" type="text" value="" />
+						<input type="submit" value="Send" />
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<!-- Javascript -->
+	<script>
+var el = function(html) {
+	console.log('el.html', html)
+	var e = document.createElement('div')
+	e.innerHTML = html
+	return e.removeChild(e.firstChild)
+}
+
+class Message {
+	constructor(data) {
+		Object.assign(this, data)
+	}
+	renderTimestamp() {
+		var td = document.createElement('td')
+		var time = el('<time data-time="' + this.timestamp + '"></time>')
+		var d = new Date(this.timestamp)
+		var tokens = d.toTimeString().split(':')
+		time.innerText = tokens[0] +':' + tokens[1]
+		td.appendChild(time)
+		return td
+	}
+	renderNick() {
+		var td = document.createElement('td')
+		td.innerText = this.senderNick
+		return td
+	}
+	renderContent() {
+		var td = document.createElement('td')
+		td.innerText = this.content
+		return td
+	}
+	renderRow() {
+		var tr = document.createElement('tr')
+		tr.appendChild(this.renderTimestamp())
+		tr.appendChild(this.renderNick())
+		tr.appendChild(this.renderContent())
+		return tr
+	}
+}
+
+class BufferView {
+	constructor(bufferId) {
+		this.bufferId = bufferId
+		this.messagesTable = document.querySelector('#messages')
+		this.lastMessageId = 0
+		this.updating = false
+	}
+
+	renderMessages(messages) {
+		var tbody = this.messagesTable.querySelector('tbody')
+		for (var message of messages) {
+			message = new Message(message)
+			tbody.appendChild(message.renderRow())
+		}
+	}
+
+	appendMessages(messages) {
+		var self = this
+		if (messages.length > 0) {
+			var lastMessage = messages[messages.length - 1]
+			this.lastMessageId = lastMessage.id
+
+			requestAnimationFrame(function(){
+				var mt = self.messagesTable
+				var scrollBottomY = mt.scrollTop + mt.clientHeight
+				var threshold = mt.clientHeight / 2
+				var scrollHeight = mt.scrollHeight
+				var shouldScrolltoBottom = scrollBottomY + threshold >= scrollHeight
+				
+				self.renderMessages(messages)
+				
+				if (shouldScrolltoBottom) {
+					mt.scrollTop = mt.scrollHeight
+				}
+			})
+		}
+		
+	}
+
+	update() {
+		var self = this
+		var url = '/api/buffers/' + this.bufferId + '/messages/?afterMessageId=' + this.lastMessageId
+		this.updating = true
+		fetch(url, {
+			credentials: 'same-origin',
+		}).then(function(res){
+			return res.json()
+		}).then(function(data){
+			console.log(data)
+			self.appendMessages(data.messages)
+			self.updating = false
+		}).catch(function(){
+			self.updating = false
+		})
+
+	}
+}
+
+class ChatList {
+	constructor() {
+
+	}
+
+	renderBuffers() {
+
+	}
+}
+
+class App {
+	constructor() {
+		
+	}
+
+	selectBuffer(bufferId) {
+		this.selectedBufferId = bufferId
+		this.bufferView = new BufferView(bufferId)
+	}
+
+	update() {
+		this.bufferView.update()
+	}
+}
+
+var urlBufferId = document.location.pathname.split('/')[2]
+
+var app = new App()
+app.selectBuffer(urlBufferId)
+
+setInterval(app.update.bind(app), 1000)
+	</script>
+</body>
+</html>

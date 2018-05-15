@@ -79,9 +79,7 @@ def index():
 @app.route('/buffer/<int:bufferId>/')
 @require_login
 def buffer(bufferId):
-    return render_template('buffer.html', **{
-        'bufferId': bufferId,
-    })
+    return app.send_static_file('buffer.html')
 
 @app.route('/api/send', methods=['POST'])
 @require_login
