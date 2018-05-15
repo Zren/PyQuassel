@@ -102,7 +102,7 @@ form input[type="submit"] {
 			<div id="inputrow">
 				<form action="/api/send" method="post">
 					<div>
-						<input name="bufferId" type="hidden" value="{{ bufferId }}" />
+						<input name="bufferId" type="hidden" value="invalidBufferId" />
 						<input name="message" type="text" value="" />
 						<input type="submit" value="Send" />
 					</div>
@@ -241,6 +241,9 @@ class App {
 	selectBuffer(bufferId) {
 		this.selectedBufferId = bufferId
 		this.bufferView = new BufferView(bufferId)
+
+		var inputBufferId = document.querySelector('#inputrow input[name="bufferId"]')
+		inputBufferId.setAttribute('value', bufferId)
 	}
 
 	update() {
