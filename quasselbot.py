@@ -53,8 +53,8 @@ class QuasselBot(QuasselClient):
 
         self.pluginCall('onSessionStarted')
 
-    def onMessageRecieved(self, message):
-        self.pluginCall('onMessageRecieved', message)
+    def onMessageReceived(self, message):
+        self.pluginCall('onMessageReceived', message)
 
     def onSocketClosed(self):
         print('\n\nSocket Closed\n\nReconnecting\n')

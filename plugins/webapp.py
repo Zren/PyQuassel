@@ -40,7 +40,7 @@ def onSessionStarted(bot):
     # import webbrowser
     # webbrowser.open(bot.config.webappUrl)
 
-def onMessageRecieved(bot, message):
+def onMessageReceived(bot, message):
     if message['type'] in [Message.Type.Plain, Message.Type.Action]:
         messages = bufferMessages[message['bufferInfo']['id']]
         messages.append(Message(message))

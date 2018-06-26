@@ -1,7 +1,7 @@
 from quassel import *
 import sys
 
-def onMessageRecieved(bot, message):
+def onMessageReceived(bot, message):
     if message['type'] == Message.Type.Plain or message['type'] == Message.Type.Action:
         messageFormat = '[{}] {:<16}\t{:>16}: {}'
         output = messageFormat.format(*[

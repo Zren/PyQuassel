@@ -158,7 +158,7 @@ class QuasselClient:
             if functionName == b'2displayMsg(Message)':
                 message = data[2]
                 # print(message)
-                self.onMessageRecieved(message)
+                self.onMessageReceived(message)
                 return
 
         elif requestType == RequestType.InitData:
@@ -314,7 +314,7 @@ class QuasselClient:
         self.sendNetworkInits() # Slooooow.
         self.sendBufferInits()
 
-    def onMessageRecieved(self, message):
+    def onMessageReceived(self, message):
         pass
 
     def onSocketClosed(self):

@@ -4,7 +4,7 @@ import base64
 
 pushNotification = None
 
-def onMessageRecieved(bot, message):
+def onMessageReceived(bot, message):
     global pushNotification
     sendNotification = False
 
