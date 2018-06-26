@@ -44,6 +44,10 @@ class QuasselQDataStream(QDataStream):
 
 class QuasselClient:
     def __init__(self, config=None):
+        self.clientName = 'QuasselClient.py'
+        self.clientVersion = '2'
+        self.clientDate = 'Jun 25 2018 21:00:00'
+
         self.config = config
         self.running = False
         self.socket = None
@@ -84,8 +88,8 @@ class QuasselClient:
     def sendClientInit(self):
         m = {}
         m['MsgType'] = 'ClientInit'
-        m['ClientVersion'] = 'QuasselClient.py v1'
-        m['ClientDate'] = 'Apr 14 2014 17:18:30'
+        m['ClientVersion'] = '{} v{}'.format(self.clientName, self.clientVersion)
+        m['ClientDate'] = self.clientDate
         m['ProtocolVersion'] = 10
         m['UseCompression'] = False
         m['UseSsl'] = False
